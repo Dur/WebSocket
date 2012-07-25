@@ -15,54 +15,61 @@ import java.net.Socket;
  *
  * @author Dur
  */
-public class ServerThread implements Runnable
-{
+public class ServerThread implements Runnable {
+
     int socketNumber;
     ServerSocket server = null;
     Socket client = null;
     BufferedReader in = null;
     PrintWriter out = null;
+    String line;
 
-    public ServerThread(int socketNumber)
-    {
+    public ServerThread(int socketNumber) {
         this.socketNumber = socketNumber;
     }
 
     @Override
-    public void run()
-    {
-        try
-        {
+    public void run() {
+        System.out.println("ServerThread " + socketNumber);
+        try {
             server = new ServerSocket(socketNumber);
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             System.out.println("Could not listen on port " + socketNumber);
             System.exit(-1);
         }
 
-        try
-        {
+        try {
             client = server.accept();
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             System.out.println("Accept failed:" + socketNumber);
             System.exit(-1);
         }
         try
         {
-            in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+             in = new BufferedReader(new InputStreamReader(client.getInputStream()));
             out = new PrintWriter(client.getOutputStream(), true);
-            System.out.println("Message on socket " + socketNumber + " " + client.getInputStream().toString());
-            out.print("Message received on port " + socketNumber);
         }
-        catch (Exception ex)
+        catch(Exception ex)
         {
-            System.out.println("Zjebał się odczyt na porcie " + socketNumber);
+            ex.printStackTrace();
         }
-
-
+        while ( ! server.isClosed())
+        {
+            try
+            {
+                line = in.readLine();
+                if(line.contains("401"))
+                {
+                    server.close();
+                }
+                out.println("Message OK");
+            }
+            catch (Exception e)
+            {
+                System.out.println("Read failed");
+                System.exit(-1);
+            }
+        }
+        System.out.println("Polaczenie zakonczone");
     }
-
 }

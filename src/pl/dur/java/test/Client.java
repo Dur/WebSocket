@@ -82,10 +82,20 @@ class Client extends JFrame
             socket = new Socket("localhost", 80);
             out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            String line = in.readLine();
+            System.out.println("Text received :" + line);
+                if(line.contains("NP"))
+                {
+                    line = line.substring(3);
+                    port = Integer.parseInt(line);
+                    socket = new Socket("localhost", port.intValue());
+                }
+                out = new PrintWriter(socket.getOutputStream(), true);
+                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         }
         catch (UnknownHostException e)
         {
-            System.out.println("Unknown host: kq6py.eng");
+            System.out.println("Unknown host");
             System.exit(1);
         }
         catch (IOException e)

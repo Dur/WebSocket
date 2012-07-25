@@ -29,7 +29,6 @@ class Server extends JFrame implements ActionListener
     { //Begin Constructor
         button = new JButton("Click Me");
         button.addActionListener(this);
-//testowe 2
         panel = new JPanel();
         panel.setLayout(new BorderLayout());
         panel.setBackground(Color.white);
@@ -62,7 +61,8 @@ class Server extends JFrame implements ActionListener
             System.out.println("Could not listen on port 80");
             System.exit(-1);
         }
-
+        while (true)
+        {
         try
         {
             client = server.accept();
@@ -83,8 +83,9 @@ class Server extends JFrame implements ActionListener
             usedPorts.add(socketNum);
             in = new BufferedReader(new InputStreamReader(client.getInputStream()));
             out = new PrintWriter(client.getOutputStream(), true);
-            ServerThread serverThread = new ServerThread(socketNum);
-            serverThread.run();
+            Thread thread = new Thread(new ServerThread(socketNum));
+            thread.start();
+            System.out.println("Po uruchomieniu wątku");
         }
         catch (IOException e)
         {
@@ -92,11 +93,10 @@ class Server extends JFrame implements ActionListener
             System.exit(-1);
         }
 
-        while (true)
-        {
             try
             {
-                line = "NP " + socketNum;
+                //line = "NP " + socketNum;
+                line = "200 OK";
                 out.println(line);
             }
             catch (Exception e)
@@ -140,5 +140,4 @@ class Server extends JFrame implements ActionListener
         frame.setVisible(true);
         frame.listenSocket();
     }
-
 }

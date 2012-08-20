@@ -31,34 +31,6 @@ public class NewDataListener implements Runnable
 		{
 			ex.printStackTrace();
 		}
-		while( true )
-		{
-			try
-			{
-				serverState.accept();
-			}
-			catch( Exception ex )
-			{
-				ex.printStackTrace();
-			}
-			try
-			{
-				in = new BufferedReader( new InputStreamReader( serverConnection.
-						getInputStream() ) );
-			}
-			catch( Exception ex )
-			{
-				ex.printStackTrace();
-			}
-			try
-			{
-				System.out.println( in.readLine() );
-			}
-			catch( Exception ex )
-			{
-				ex.printStackTrace();
-			}
-		}
 	}
 	
 	@Override

@@ -105,23 +105,23 @@ class Client extends JFrame
         }
     }
 
-    public static void main(String[] args)
-    {
-        Client frame = new Client();
-        frame.setTitle("Client Program");
-        WindowListener l = new WindowAdapter()
-        {
-            public void windowClosing(WindowEvent e)
-            {
-                System.exit(0);
-            }
-
-        };
-
-        frame.addWindowListener(l);
-        frame.pack();
-        frame.setVisible(true);
-        frame.listenSocket();
-    }
+//    public static void main(String[] args)
+//    {
+//        Client frame = new Client();
+//        frame.setTitle("Client Program");
+//        WindowListener l = new WindowAdapter()
+//        {
+//            public void windowClosing(WindowEvent e)
+//            {
+//                System.exit(0);
+//            }
+//
+//        };
+//
+//        frame.addWindowListener(l);
+//        frame.pack();
+//        frame.setVisible(true);
+//        frame.listenSocket();
+//    }
 
 }

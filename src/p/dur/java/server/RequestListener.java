@@ -35,7 +35,7 @@ public class RequestListener implements Runnable
 	@Override
 	public void run()
 	{
-		System.out.println( "ServerThread " + socketNumber );
+		System.out.println( "RequestListener on port " + socketNumber );
 		try
 		{
 			server = new ServerSocket( socketNumber );
@@ -49,6 +49,7 @@ public class RequestListener implements Runnable
 		try
 		{
 			client = server.accept();
+			System.out.println("connection accepted from "+client.getRemoteSocketAddress());
 		}
 		catch( IOException e )
 		{
@@ -69,8 +70,11 @@ public class RequestListener implements Runnable
 		{
 			try
 			{
+				System.out.println("waiting for input");
 				line = in.readLine();
+				System.out.println("received " + line);
 				out.println( line );
+				System.out.println("response sended");
 			}
 			catch( Exception e )
 			{
@@ -85,3 +89,4 @@ public class RequestListener implements Runnable
 		return client;
 	}
 }
+ 

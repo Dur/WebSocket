@@ -22,7 +22,7 @@ public class RequestSender implements Runnable
 	PrintWriter out;
 	private final String host;
 	private int port;
-	String request = "";
+	String myRequest = "";
 
 	public RequestSender( int portNum, String host )
 	{
@@ -34,22 +34,21 @@ public class RequestSender implements Runnable
 	{
 		try
 		{
+			System.out.println( "connecting to " + host + port );
 			socket = new Socket( host, port );
 			out = new PrintWriter( socket.getOutputStream(), true );
 			in = new BufferedReader( new InputStreamReader( socket.
 					getInputStream() ) );
-			String line = in.readLine();
-			System.out.println( "Text received :" + line );
-			if( line.contains( "NP" ) )
+			System.out.println( "after connect to new socket" );
+			String serverAnswer = in.readLine();
+			if( serverAnswer.contains( "NP" ) )
 			{
-				line = line.substring( 3 );
-				Integer newPort = Integer.parseInt( line );
-				socket = new Socket( host, newPort.intValue() );
-				this.port = newPort;
+				port = Integer.parseInt( serverAnswer.substring( 3 ) );
+				socket = new Socket( host, port );
+				out = new PrintWriter( socket.getOutputStream(), true );
+				in = new BufferedReader( new InputStreamReader( socket.getInputStream() ) );
+				System.out.println( "connecting to " + host + port );
 			}
-			out = new PrintWriter( socket.getOutputStream(), true );
-			in = new BufferedReader( new InputStreamReader( socket.
-					getInputStream() ) );
 		}
 		catch( UnknownHostException e )
 		{
@@ -61,33 +60,13 @@ public class RequestSender implements Runnable
 			System.out.println( "No I/O" );
 			System.exit( 1 );
 		}
+		System.out.println( "after connect" );
 	}
 
 	public synchronized void sendRequest( String request )
 	{
-		this.request = request;
+		this.myRequest = request;
 		this.notify();
-	}
-
-	public synchronized void sendRequestToServer()
-	{
-		try
-		{
-			this.wait();
-		}
-		catch( Exception ex )
-		{
-			ex.printStackTrace();
-		}
-		out.print( request );
-		try
-		{
-			System.out.println( in.readLine() );
-		}
-		catch( Exception ex )
-		{
-			ex.printStackTrace();
-		}
 	}
 
 	@Override
@@ -96,12 +75,22 @@ public class RequestSender implements Runnable
 		connect();
 		while( true )
 		{
-			sendRequestToServer();
+			try
+			{
+				this.wait();
+				out.println( myRequest );
+				System.out.println( "sending " + myRequest );
+				System.out.println( "received " + in.readLine() );
+			}
+			catch( Exception ex )
+			{
+				ex.printStackTrace();
+			}
 		}
 	}
 
 	public void setRequest( String request )
 	{
-		this.request = request;
+		this.myRequest = request;
 	}
 }

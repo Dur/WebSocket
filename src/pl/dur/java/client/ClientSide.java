@@ -24,7 +24,6 @@ class ClientSide extends JFrame
 	JPanel panel;
 	int newDataListenerPort;
 	JTextField textField;
-	PrintWriter out = null;
 	RequestSender requestSender = null;
 	NewDataListener serverState = null;
 	static int MAX_PORT_NUM = 65000;
@@ -93,7 +92,6 @@ class ClientSide extends JFrame
 		if( source == button )
 		{
 			String text = textField.getText();
-			out.println( text );
 			textField.setText( new String( "" ) );
 			requestSender.sendRequest( text );
 		}

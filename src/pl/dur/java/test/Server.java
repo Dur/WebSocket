@@ -29,7 +29,7 @@ class Server extends JFrame implements ActionListener
     { //Begin Constructor
         button = new JButton("Click Me");
         button.addActionListener(this);
-//testowe
+//testowe 2
         panel = new JPanel();
         panel.setLayout(new BorderLayout());
         panel.setBackground(Color.white);

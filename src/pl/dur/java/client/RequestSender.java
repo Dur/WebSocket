@@ -4,12 +4,9 @@
  */
 package pl.dur.java.client;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.net.UnknownHostException;
+import pl.dur.java.messages.Message;
 
 /**
  *
@@ -18,11 +15,13 @@ import java.net.UnknownHostException;
 public class RequestSender implements Runnable
 {
 	private Socket socket = null;
-	BufferedReader in;
-	PrintWriter out;
+	private ObjectOutputStream out;
 	private final String host;
 	private int port;
-	String myRequest = "";
+	private String myRequest = "";
+	private ResponseExecutor responseExecutor = null;
+	private Object requestParams = null;
+	private Thread readyToServe;
 
 	public RequestSender( int portNum, String host )
 	{
@@ -36,36 +35,25 @@ public class RequestSender implements Runnable
 		{
 			System.out.println( "connecting to " + host + port );
 			socket = new Socket( host, port );
-			out = new PrintWriter( socket.getOutputStream(), true );
-			in = new BufferedReader( new InputStreamReader( socket.
-					getInputStream() ) );
-			System.out.println( "after connect to new socket" );
-			String serverAnswer = in.readLine();
-			if( serverAnswer.contains( "NP" ) )
+			responseExecutor = new ResponseExecutor();
+			readyToServe = new Thread( responseExecutor );
+			readyToServe.start();
+			while( readyToServe.getState() != Thread.State.WAITING )
 			{
-				port = Integer.parseInt( serverAnswer.substring( 3 ) );
-				socket = new Socket( host, port );
-				out = new PrintWriter( socket.getOutputStream(), true );
-				in = new BufferedReader( new InputStreamReader( socket.getInputStream() ) );
-				System.out.println( "connecting to " + host + port );
+				System.out.println( "Waiting for thread to wait " );
 			}
+			responseExecutor.waitForAnswer( socket );
 		}
-		catch( UnknownHostException e )
+		catch( Exception ex )
 		{
-			System.out.println( "Unknown host" );
-			System.exit( 1 );
+			ex.printStackTrace();
 		}
-		catch( IOException e )
-		{
-			System.out.println( "No I/O" );
-			System.exit( 1 );
-		}
-		System.out.println( "after connect" );
 	}
 
-	public synchronized void sendRequest( String request )
+	public synchronized void sendRequest( String request, Object params )
 	{
 		this.myRequest = request;
+		this.requestParams = params;
 		this.notify();
 	}
 
@@ -73,24 +61,31 @@ public class RequestSender implements Runnable
 	public synchronized void run()
 	{
 		connect();
+		Message request;
+		try
+		{
+			out = new ObjectOutputStream( socket.getOutputStream() );
+		}
+		catch( Exception ex )
+		{
+			ex.printStackTrace();
+		}
 		while( true )
 		{
 			try
 			{
+				System.out.println( "waiting for request" );
 				this.wait();
-				out.println( myRequest );
+				System.out.println( "got request" );
+				request = new Message( myRequest, requestParams );
 				System.out.println( "sending " + myRequest );
-				System.out.println( "received " + in.readLine() );
+				out.writeObject( request );
+				responseExecutor.waitForAnswer( socket );
 			}
 			catch( Exception ex )
 			{
 				ex.printStackTrace();
 			}
 		}
-	}
-
-	public void setRequest( String request )
-	{
-		this.myRequest = request;
 	}
 }

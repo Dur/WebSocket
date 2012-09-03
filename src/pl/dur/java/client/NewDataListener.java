@@ -38,6 +38,7 @@ public class NewDataListener implements Runnable
 	{
 		while( true )
 		{
+			System.out.println("waiting for server connection");
 			try
 			{
 				serverConnection = serverState.accept();
@@ -50,6 +51,7 @@ public class NewDataListener implements Runnable
 			{
 				in = new BufferedReader( new InputStreamReader( serverConnection.
 						getInputStream() ) );
+				System.out.println("got server input");
 				System.out.println( in.readLine() );
 			}
 			catch( Exception ex )

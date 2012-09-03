@@ -1,7 +1,7 @@
 package pl.dur.java.model;
 
 import java.util.HashMap;
-import p.dur.java.server.RequestListener;
+import pl.dur.java.server.RequestListener;
 
 /**
  * Class which contains all connections from clients. After serwer state change,
@@ -14,12 +14,21 @@ public class ConnectionHolder
 {
 	HashMap<Integer, RequestListener> connections = new HashMap<Integer, RequestListener>();
 
-	public void stateChanged()
+	public void stateChanged(String change)
 	{
+		for(Integer key : connections.keySet() )
+		{
+			connections.get( key ).serverStateChanged( change );
+		}
 	}
 
 	public void addConnection( Integer socketNum, RequestListener thread )
 	{
 		connections.put( socketNum, thread );
+	}
+	
+	public void removeConnection(Integer key)
+	{
+		connections.remove( key );
 	}
 }

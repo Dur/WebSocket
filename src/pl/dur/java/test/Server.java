@@ -47,7 +47,7 @@ class Server extends JFrame implements ActionListener
 
 		if( source == button )
 		{
-			connectionHolder.stateChanged();
+			connectionHolder.stateChanged("Changed");
 		}
 	}
 
@@ -123,22 +123,22 @@ class Server extends JFrame implements ActionListener
 		}
 	}
 
-//	public static void main( String[] args )
-//	{
-//		Server frame = new Server();
-//		System.out.println( "***************************" + frame.getClass().
-//				toString() );
-//		frame.setTitle( "Server Program" );
-//		WindowListener l = new WindowAdapter()
-//		{
-//			public void windowClosing( WindowEvent e )
-//			{
-//				System.exit( 0 );
-//			}
-//		};
-//		frame.addWindowListener( l );
-//		frame.pack();
-//		frame.setVisible( true );
-//		frame.listenSocket();
-//	}
+	public static void main( String[] args )
+	{
+		Server frame = new Server();
+		System.out.println( "***************************" + frame.getClass().
+				toString() );
+		frame.setTitle( "Server Program" );
+		WindowListener l = new WindowAdapter()
+		{
+			public void windowClosing( WindowEvent e )
+			{
+				System.exit( 0 );
+			}
+		};
+		frame.addWindowListener( l );
+		frame.pack();
+		frame.setVisible( true );
+		frame.listenSocket();
+	}
 }

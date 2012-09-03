@@ -2,19 +2,16 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package p.dur.java.server;
+package pl.dur.java.server;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.event.*;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashSet;
-import javax.swing.*;
+import pl.dur.java.dispatchers.Dispatcher;
+import pl.dur.java.messages.Message;
 import pl.dur.java.model.ConnectionHolder;
 
 /**
@@ -23,23 +20,24 @@ import pl.dur.java.model.ConnectionHolder;
  */
 public class ConnectionReceiver implements Runnable
 {
-	static int MAX_PORT_NUM = 65000;
-	HashSet<Integer> usedPorts = new HashSet<Integer>();
-	ServerSocket server = null;
-	Socket client = null;
-	BufferedReader in = null;
-	PrintWriter out = null;
-	String line;
-	Integer socketNum = 0;
-	ConnectionHolder connectionHolder = new ConnectionHolder();
+	private static int MAX_PORT_NUM = 65000;
+	private HashSet<Integer> usedPorts = new HashSet<Integer>();
+	private ServerSocket server = null;
+	private Socket client = null;
+	private Integer socketNum = 0;
+	private ConnectionHolder connectionHolder = new ConnectionHolder();
+	private ServerStateChangeListener serverStateListener;
+	private Dispatcher dispatcher = null;
+	private Message response = null;
+	private ObjectOutputStream output = null;
 
 	ConnectionReceiver()
 	{ //Begin Constructor
-
 	} //End Constructor
 
 	public void listenSocket()
 	{
+		System.out.println("before binding port");
 		try
 		{
 			server = new ServerSocket( 80 );
@@ -47,6 +45,7 @@ public class ConnectionReceiver implements Runnable
 		catch( IOException e )
 		{
 			System.out.println( "Could not listen on port 80" );
+			e.printStackTrace();
 			System.exit( -1 );
 		}
 		while( true )
@@ -68,14 +67,14 @@ public class ConnectionReceiver implements Runnable
 					socketNum = (int) (Math.random() * MAX_PORT_NUM);
 				}
 				usedPorts.add( socketNum );
-				in = new BufferedReader( new InputStreamReader( client.
-						getInputStream() ) );
-				out = new PrintWriter( client.getOutputStream(), true );
-				RequestListener clientRequestListener = new RequestListener( socketNum );
+				output = new ObjectOutputStream( client.getOutputStream() );
+				RequestListener clientRequestListener = new RequestListener( socketNum, dispatcher );
 				Thread thread = new Thread( clientRequestListener );
 				thread.start();
-				System.out.println( "Po uruchomieniu wątku" );
-				out.println( "NP "+socketNum);
+				response = new Message( "NP", new Integer( socketNum ) );
+				System.out.println("before sending message");
+				output.writeObject( response );
+				System.out.println("after sending message");
 			}
 			catch( IOException e )
 			{
@@ -88,6 +87,17 @@ public class ConnectionReceiver implements Runnable
 	@Override
 	public void run()
 	{
+		System.out.println("starting ConnectionReceiver");
 		listenSocket();
+	}
+
+	public ConnectionHolder getConnectionHolder()
+	{
+		return connectionHolder;
+	}
+
+	public void setConnectionHolder( ConnectionHolder connectionHolder )
+	{
+		this.connectionHolder = connectionHolder;
 	}
 }

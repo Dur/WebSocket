@@ -4,18 +4,18 @@
  */
 package pl.dur.java.actions;
 
+import java.net.Socket;
+
 /**
  *
  * @author Dur
  */
 public abstract class Action
 {
-	private Object params;
 
-	public Action( Object params )
+	public Action(  )
 	{
-		this.params = params;
 	}
 
-	public abstract void execute();
+	public abstract void execute(Object param, Socket toResponse);
 }

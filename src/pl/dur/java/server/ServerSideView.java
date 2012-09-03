@@ -2,8 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package p.dur.java.server;
+package pl.dur.java.server;
 
+import com.sun.org.apache.bcel.internal.generic.TABLESWITCH;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.*;
@@ -15,17 +16,16 @@ import pl.dur.java.model.ConnectionHolder;
  *
  * @author Dur
  */
-public class ServerSide extends JFrame implements ActionListener
+public class ServerSideView extends JFrame implements ActionListener
 {
-	ConnectionReceiver connectionReceiver = new ConnectionReceiver();
-	private ServerStateChangeListener serverStateListener = new ServerStateChangeListener();
+	
 	JButton button;
 	JPanel panel;
 	JTextArea textArea = new JTextArea();
 	JTextField textField;
-	ConnectionHolder connectionHolder = new ConnectionHolder();
+	ServerSide serverSide;
 
-	public ServerSide()
+	public ServerSideView()
 	{
 		button = new JButton( "Click Me" );
 		button.addActionListener( this );
@@ -35,6 +35,7 @@ public class ServerSide extends JFrame implements ActionListener
 		getContentPane().add( panel );
 		panel.add( "Center", textArea );
 		panel.add( "South", button );
+		serverSide = new ServerSide();
 	}
 
 	@Override
@@ -46,9 +47,9 @@ public class ServerSide extends JFrame implements ActionListener
 		{
 			try
 			{
-				serverStateListener.serverStateChanged();
+				System.out.println( "state changed" );
 			}
-			catch(Exception ex)
+			catch( Exception ex )
 			{
 				ex.printStackTrace();
 			}
@@ -59,18 +60,12 @@ public class ServerSide extends JFrame implements ActionListener
 	{
 	}
 
-	private void startServer()
-	{
-		Thread connectionReceiverThread = new Thread( connectionReceiver );
-		connectionReceiverThread.start();
-		Thread serverStateListenerThread = new Thread( serverStateListener );
-		serverStateListenerThread.start();
-	}
+	
 
 	public static void main( String args[] )
 	{
-		ServerSide serverSide = new ServerSide();
-		serverSide.setTitle( "Server Program" );
+		ServerSideView serverSideView = new ServerSideView();
+		serverSideView.setTitle( "Server Program" );
 		WindowListener l = new WindowAdapter()
 		{
 			public void windowClosing( WindowEvent e )
@@ -78,9 +73,8 @@ public class ServerSide extends JFrame implements ActionListener
 				System.exit( 0 );
 			}
 		};
-		serverSide.addWindowListener( l );
-		serverSide.pack();
-		serverSide.setVisible( true );
-		serverSide.startServer();
+		serverSideView.addWindowListener( l );
+		serverSideView.pack();
+		serverSideView.setVisible( true );
 	}
 }

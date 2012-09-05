@@ -8,6 +8,8 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.List;
 import pl.dur.java.actions.Action;
+import pl.dur.java.messages.Message;
+import pl.dur.java.socketAdmins.SocketAdmin;
 
 /**
  *
@@ -21,20 +23,19 @@ public abstract class EventMapper
 	{
 	}
 
-	public final void executeAction( Object param, String request, Socket toResponse )
+	public final void executeAction( Object param, String request, SocketAdmin administrator )
 	{
 		try
 		{
 			Action ax = actionMapper.get( request );
 			if( ax != null )
 			{
-				ax.execute( param, toResponse );
+				ax.execute( param, administrator );
 			}
 			else
 			{
 				throw new NullPointerException( "Action not found in EventMapper");
 			}
-
 		}
 		catch( NullPointerException ex )
 		{

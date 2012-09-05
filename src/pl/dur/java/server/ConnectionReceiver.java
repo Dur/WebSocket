@@ -37,7 +37,7 @@ public class ConnectionReceiver implements Runnable
 
 	public void listenSocket()
 	{
-		System.out.println("before binding port");
+		System.out.println( "before binding port" );
 		try
 		{
 			server = new ServerSocket( 80 );
@@ -71,10 +71,11 @@ public class ConnectionReceiver implements Runnable
 				RequestListener clientRequestListener = new RequestListener( socketNum, dispatcher );
 				Thread thread = new Thread( clientRequestListener );
 				thread.start();
+				System.out.println( "Selected port for client " + socketNum );
 				response = new Message( "NP", new Integer( socketNum ) );
-				System.out.println("before sending message");
+				System.out.println( "before sending message" );
 				output.writeObject( response );
-				System.out.println("after sending message");
+				System.out.println( "after sending message" );
 			}
 			catch( IOException e )
 			{
@@ -87,7 +88,7 @@ public class ConnectionReceiver implements Runnable
 	@Override
 	public void run()
 	{
-		System.out.println("starting ConnectionReceiver");
+		System.out.println( "starting ConnectionReceiver" );
 		listenSocket();
 	}
 

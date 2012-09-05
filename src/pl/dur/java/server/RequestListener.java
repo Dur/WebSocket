@@ -55,12 +55,14 @@ public class RequestListener implements Runnable
 		}
 		try
 		{
+			System.out.println("getting input stream from remote host");
 			input = new ObjectInputStream( client.getInputStream() );
 		}
 		catch( Exception ex )
 		{
 			ex.printStackTrace();
 		}
+		System.out.println("has input stream");
 		Object inputObject;
 		Message request;
 		while( true )
@@ -69,6 +71,7 @@ public class RequestListener implements Runnable
 			{
 				System.out.println( "waiting for input" );
 				inputObject = input.readObject();
+				System.out.println("read " + ((Message) inputObject).getRequest());
 				if( inputObject.getClass() == String.class )
 				{
 					request = new Message( (String) inputObject, null );

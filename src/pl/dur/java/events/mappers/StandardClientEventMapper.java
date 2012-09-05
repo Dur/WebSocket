@@ -5,7 +5,7 @@
 package pl.dur.java.events.mappers;
 
 import java.util.List;
-import pl.dur.java.actions.NewPortAction;
+import pl.dur.java.lowLevelActions.NewPortAction;
 
 /**
  *
@@ -17,6 +17,7 @@ public class StandardClientEventMapper extends EventMapper
 	public StandardClientEventMapper()
 	{
 		super();
+		fulfillMap( null );
 	}
 	
 	

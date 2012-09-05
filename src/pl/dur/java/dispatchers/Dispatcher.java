@@ -7,42 +7,45 @@ package pl.dur.java.dispatchers;
 import java.net.Socket;
 import java.util.LinkedList;
 import java.util.StringTokenizer;
-import pl.dur.java.actions.Action;
+import java.util.concurrent.BlockingQueue;
 import pl.dur.java.events.mappers.EventMapper;
 import pl.dur.java.messages.Message;
-import pl.dur.java.model.ConnectionHolder;
+import pl.dur.java.socketAdmins.SocketAdmin;
 
 /**
  *
  * @author Dur
  */
-public class Dispatcher
+public class Dispatcher implements Runnable
 {
-	EventMapper eventMapper = null;
 	StringTokenizer tokenizer = null;
+	SocketAdmin socketAdministrator;
+	BlockingQueue<Message> requestQueue;
+	EventMapper eventMapper;
 
-	public Dispatcher( EventMapper eventMapper )
+	public Dispatcher( SocketAdmin newSocketAdministrator, BlockingQueue<Message> newRequestQueue, EventMapper mapper )
 	{
-		this.eventMapper = eventMapper;
+		this.socketAdministrator = newSocketAdministrator;
+		this.requestQueue = newRequestQueue;
+		this.eventMapper = mapper;
 	}
 
-	public void dispatch( Message message, Socket client )
+
+	@Override
+	public void run()
 	{
-		String command;
-		tokenizer = new StringTokenizer( message.getRequest(), " " );
-		LinkedList<String> params = new LinkedList<String>();
-		if( message.getParams() == null )
+		Message message = new Message("", new Object());
+		while( !Thread.interrupted() )
 		{
-			if( tokenizer.countTokens() > 0 )
+			try
 			{
-				command = tokenizer.nextToken();
-				eventMapper.executeAction( params, command, client );
+				message = requestQueue.take();
 			}
-		}
-		else
-		{
-			command = message.getRequest();
-			eventMapper.executeAction( message.getParams(), command, client);
+			catch( InterruptedException ex )
+			{
+				ex.printStackTrace();
+			}
+			eventMapper.executeAction( message.getParams(), message.getRequest(), socketAdministrator);
 		}
 	}
 }

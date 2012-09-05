@@ -1,32 +1,43 @@
 package pl.dur.java.client;
 
 /*
- * To change this template, choose Tools | Templates and open the template in
- * the editor.
+ * To change this template, choose Tools | Templates and open the template in the editor.
  */
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.event.*;
-import java.io.PrintWriter;
-import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.util.concurrent.ArrayBlockingQueue;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import pl.dur.java.events.mappers.EventMapper;
+import pl.dur.java.events.mappers.StandardClientEventMapper;
+import pl.dur.java.messages.Message;
 
 /**
  *
  * @author Dur
  */
-class ClientSideView extends JFrame
-		implements ActionListener
+class ClientSideView extends JFrame implements ActionListener
 {
-	JLabel text, clicked;
-	JButton button;
-	JButton webSocketPortOpener;
-	JTextField portNumberTextField;
-	JPanel panel;
-	int newDataListenerPort;
-	JTextField textField;
-	RequestSender requestSender = null;
-	NewDataListener serverState = null;
-	static int MAX_PORT_NUM = 65000;
+	private JLabel text, clicked;
+	private JButton button;
+	private JButton webSocketPortOpener;
+	private JTextField portNumberTextField;
+	private JPanel panel;
+	private int newDataListenerPort;
+	private JTextField textField;
+	private ClientSocketAdmin requestSender = null;
+	private NewDataListener serverState = null;
+	private static int MAX_PORT_NUM = 65000;
+	private EventMapper eventMapper = new StandardClientEventMapper();
+	private ArrayBlockingQueue<Message> actions = new ArrayBlockingQueue<Message>( Integer.MAX_VALUE );
 
 	ClientSideView( int portNum, String host )
 	{
@@ -49,8 +60,7 @@ class ClientSideView extends JFrame
 				}
 				if( webSocketPort != 0 )
 				{
-					requestSender.sendRequest( "WEBSOCKET" + webSocketPort.
-							intValue(), null );
+					requestSender.sendToServer( new Message( "WS", webSocketPort ) );
 				}
 			}
 		} );
@@ -68,25 +78,25 @@ class ClientSideView extends JFrame
 		panel.add( "North", button );
 		panel.add( "East", webSocketPortOpener );
 		panel.add( "Center", portNumberTextField );
-		
+
 		newDataListenerPort = (int) (Math.random() * MAX_PORT_NUM);
 		while( newDataListenerPort < 80 )
 		{
 			newDataListenerPort = (int) (Math.random() * MAX_PORT_NUM);
 		}
-		
+
 		serverState = new NewDataListener( newDataListenerPort );
 		Thread serverStateThread = new Thread( serverState );
 		serverStateThread.start();
-		
-		requestSender = new RequestSender( portNum, host );
+
+		requestSender = new ClientSocketAdmin( portNum, host, eventMapper );
 		Thread requestSenderThread = new Thread( requestSender );
 		requestSenderThread.start();
-		
-		NewDataListener newDataListener = new NewDataListener( 10045);
-		Thread newDataListenerThread = new Thread(newDataListener);
+
+		NewDataListener newDataListener = new NewDataListener( 10045 );
+		Thread newDataListenerThread = new Thread( newDataListener );
 		newDataListenerThread.start();
-		System.out.println("after initialisation");
+		System.out.println( "after initialisation" );
 	}
 
 	public void actionPerformed( ActionEvent event )
@@ -97,7 +107,7 @@ class ClientSideView extends JFrame
 		{
 			String text = textField.getText();
 			textField.setText( new String( "" ) );
-			requestSender.sendRequest( text, null );
+			requestSender.sendToServer( new Message( text, new Object() ) );
 		}
 	}
 

@@ -4,8 +4,7 @@
  */
 package pl.dur.java.dispatchers;
 
-import java.net.Socket;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.StringTokenizer;
 import java.util.concurrent.BlockingQueue;
 import pl.dur.java.events.mappers.EventMapper;
@@ -21,13 +20,13 @@ public class Dispatcher implements Runnable
 	StringTokenizer tokenizer = null;
 	SocketAdmin socketAdministrator;
 	BlockingQueue<Message> requestQueue;
-	EventMapper eventMapper;
+	List<EventMapper> executionList = null;
 
-	public Dispatcher( SocketAdmin newSocketAdministrator, BlockingQueue<Message> newRequestQueue, EventMapper mapper )
+	public Dispatcher( SocketAdmin newSocketAdministrator, BlockingQueue<Message> newRequestQueue, List<EventMapper> executionList )
 	{
 		this.socketAdministrator = newSocketAdministrator;
 		this.requestQueue = newRequestQueue;
-		this.eventMapper = mapper;
+		this.executionList = executionList;
 	}
 
 
@@ -39,13 +38,21 @@ public class Dispatcher implements Runnable
 		{
 			try
 			{
+				System.out.println("Dispatcher wait for message in queue");
 				message = requestQueue.take();
+				System.out.println("Dispatcher getting request to dispatch");
 			}
 			catch( InterruptedException ex )
 			{
 				ex.printStackTrace();
 			}
-			eventMapper.executeAction( message.getParams(), message.getRequest(), socketAdministrator);
+			for(EventMapper mapper : executionList)
+			{
+				if( mapper.executeAction( message ) != -1)
+				{
+					break;
+				}
+			}
 		}
 	}
 }

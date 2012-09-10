@@ -12,8 +12,10 @@ import pl.dur.java.socketAdmins.SocketAdmin;
  *
  * @author Dur
  */
-public interface Action
+public abstract class Action
 {
-
-	public abstract void execute(Object param, SocketAdmin administrator);
+	public void execute(Object param)
+	{
+		throw new UnsupportedOperationException( "Must be implementet by extensive class");
+	}
 }

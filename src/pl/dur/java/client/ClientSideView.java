@@ -37,7 +37,7 @@ class ClientSideView extends JFrame implements ActionListener
 	private NewDataListener serverState = null;
 	private static int MAX_PORT_NUM = 65000;
 	private EventMapper eventMapper = new StandardClientEventMapper();
-	private ArrayBlockingQueue<Message> actions = new ArrayBlockingQueue<Message>( Integer.MAX_VALUE );
+	private ArrayBlockingQueue<Message> actions = new ArrayBlockingQueue<Message>( 10 );
 
 	ClientSideView( int portNum, String host )
 	{
@@ -85,18 +85,18 @@ class ClientSideView extends JFrame implements ActionListener
 			newDataListenerPort = (int) (Math.random() * MAX_PORT_NUM);
 		}
 
-		serverState = new NewDataListener( newDataListenerPort );
-		Thread serverStateThread = new Thread( serverState );
-		serverStateThread.start();
+//		serverState = new NewDataListener( newDataListenerPort );
+//		Thread serverStateThread = new Thread( serverState );
+//		serverStateThread.start();
 
-		requestSender = new ClientSocketAdmin( portNum, host, eventMapper );
+		requestSender = new ClientSocketAdmin( portNum, host, eventMapper, 10 );
 		Thread requestSenderThread = new Thread( requestSender );
 		requestSenderThread.start();
 
-		NewDataListener newDataListener = new NewDataListener( 10045 );
-		Thread newDataListenerThread = new Thread( newDataListener );
-		newDataListenerThread.start();
-		System.out.println( "after initialisation" );
+//		NewDataListener newDataListener = new NewDataListener( 10045 );
+//		Thread newDataListenerThread = new Thread( newDataListener );
+//		newDataListenerThread.start();
+//		System.out.println( "after initialisation" );
 	}
 
 	public void actionPerformed( ActionEvent event )

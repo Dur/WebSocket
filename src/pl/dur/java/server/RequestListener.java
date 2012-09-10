@@ -65,7 +65,7 @@ public class RequestListener implements Runnable
 		System.out.println("has input stream");
 		Object inputObject;
 		Message request;
-		while( true )
+		while( !Thread.interrupted() )
 		{
 			try
 			{
@@ -78,14 +78,14 @@ public class RequestListener implements Runnable
 				}
 				else
 				{
+					System.out.println("Trying to read object");
 					request = (Message) inputObject;
 				}
-				dispatcher.dispatch( request, client );
+				//dispatcher.dispatch( request, client );
 			}
 			catch( Exception e )
 			{
 				System.out.println( "Read failed" );
-				System.exit( -1 );
 			}
 		}
 	}

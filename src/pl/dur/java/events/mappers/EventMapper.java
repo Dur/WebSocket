@@ -1,15 +1,8 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package pl.dur.java.events.mappers;
 
-import java.net.Socket;
 import java.util.HashMap;
-import java.util.List;
 import pl.dur.java.actions.Action;
 import pl.dur.java.messages.Message;
-import pl.dur.java.socketAdmins.SocketAdmin;
 
 /**
  *
@@ -17,37 +10,33 @@ import pl.dur.java.socketAdmins.SocketAdmin;
  */
 public abstract class EventMapper
 {
-	protected HashMap<String, Action> actionMapper = new HashMap<String, Action>();
+	protected HashMap<String, Action> actionMapper;
 
 	public EventMapper()
 	{
+		this.actionMapper  = new HashMap<String, Action>();
+	}
+	
+	public EventMapper(HashMap<String, Action> mapper)
+	{
+		this.actionMapper = mapper;
 	}
 
-	public final void executeAction( Object param, String request, SocketAdmin administrator )
+	public abstract int executeAction( Message message );
+	
+	public void setOrReplaceAction(String name, Action action)
 	{
-		try
-		{
-			Action ax = actionMapper.get( request );
-			if( ax != null )
-			{
-				ax.execute( param, administrator );
-			}
-			else
-			{
-				throw new NullPointerException( "Action not found in EventMapper");
-			}
-		}
-		catch( NullPointerException ex )
-		{
-			System.out.println(ex.getMessage());
-			ex.printStackTrace();
-		}
+		actionMapper.put( name, action );
 	}
-
-	protected abstract void fulfillMap( List<EventMapper> eventMappersList );
-
-	protected final HashMap<String, Action> getActionMapper()
+	
+	public int setAction(String name, Action action)
 	{
-		return actionMapper;
+		Action previousAction = this.actionMapper.put( name, action );
+		if(	previousAction != null )
+		{
+			actionMapper.put( name, previousAction );
+			return -1;
+		}
+		return 0;
 	}
 }

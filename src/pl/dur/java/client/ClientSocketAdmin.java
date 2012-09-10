@@ -4,8 +4,13 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OptionalDataException;
+import java.io.Serializable;
 import java.net.Socket;
+import java.net.UnknownHostException;
+import java.nio.channels.ClosedByInterruptException;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import pl.dur.java.dispatchers.Dispatcher;
 import pl.dur.java.events.mappers.EventMapper;
 import pl.dur.java.messages.Message;
@@ -28,27 +33,49 @@ public class ClientSocketAdmin implements Runnable, SocketAdmin
 	private ArrayBlockingQueue<SocketAdmin> internalStateChangeActions = null;
 	private Dispatcher dispatcher = null;
 	private EventMapper eventMapper = null;
+	Thread outputWritter;
+	Thread inputListener;
 
-	private class InputListener implements Runnable, SocketAdmin
+	private class InputListener implements Runnable, SocketAdmin, Serializable
 	{
+		static final long serialVersionUID = 42L;
 		private ArrayBlockingQueue<Message> actionQueue;
 		private ObjectInputStream in;
+		Socket inputSocket;
 
-		public InputListener( ArrayBlockingQueue<Message> queue, ObjectInputStream input )
+		public InputListener( ArrayBlockingQueue<Message> queue, Socket newSocket )
 		{
-			this.in = input;
 			this.actionQueue = queue;
+			this.inputSocket = socket;
 		}
 
 		@Override
 		public void run()
 		{
+			try
+			{
+				in = new ObjectInputStream( inputSocket.getInputStream() );
+			}
+			catch( IOException ex )
+			{
+				if( Thread.interrupted() )
+				{
+					System.out.println( "Input listener interrupted" );
+					return;
+				}
+				ex.printStackTrace();
+				return;
+
+			}
+			System.out.println( "inputListener is running" );
 			Message message = new Message( "", new Object() );
 			while( !Thread.interrupted() )
 			{
 				try
 				{
+					System.out.println( "Waiting for input" );
 					message = ((Message) in.readObject());
+					System.out.println( "Got request from server: " + message.getRequest() );
 				}
 				catch( ClassNotFoundException ex )
 				{
@@ -60,35 +87,61 @@ public class ClientSocketAdmin implements Runnable, SocketAdmin
 				}
 				catch( IOException ex )
 				{
-					ex.printStackTrace();
+					System.out.println( "IO Exception in Input listener" );
+					return;
+				}
+				catch(Exception ex)
+				{
+					System.out.println("Unknown excepcion, killing thread input listener");
+					return;
 				}
 				try
 				{
+					System.out.println( "setting message for dispacher" );
 					actionQueue.put( message );
+					System.out.println( "Message set" );
 
 				}
 				catch( InterruptedException ex )
 				{
-					ex.printStackTrace();
+					System.out.println( "input listener interrupted" );
+					return;
 				}
 			}
 		}
 	}
 
-	private class OutputSender implements Runnable
+	private class OutputSender implements Runnable, Serializable
 	{
+		static final long serialVersionUID = 42L;
 		private ArrayBlockingQueue<Message> outputQueue;
 		private ObjectOutputStream out;
+		private Socket outputSocket;
 
-		public OutputSender( ArrayBlockingQueue<Message> queue, ObjectOutputStream output )
+		public OutputSender( ArrayBlockingQueue<Message> queue, Socket newSocket )
 		{
-			this.out = output;
 			this.outputQueue = queue;
+			outputSocket = newSocket;
 		}
 
 		@Override
 		public void run()
 		{
+			try
+			{
+				this.out = new ObjectOutputStream( outputSocket.getOutputStream() );
+				System.out.println( "output listener got stream" );
+			}
+			catch( IOException ex )
+			{
+				if( Thread.interrupted() )
+				{
+					return;
+				}
+				ex.printStackTrace();
+
+			}
+			System.out.println( "Output sender is runing" );
 			Message message = new Message( "", new Object() );
 			while( !Thread.interrupted() )
 			{
@@ -98,7 +151,8 @@ public class ClientSocketAdmin implements Runnable, SocketAdmin
 				}
 				catch( InterruptedException ex )
 				{
-					ex.printStackTrace();
+					System.out.println( "Output sender interrupted" );
+					return;
 				}
 				try
 				{
@@ -106,32 +160,37 @@ public class ClientSocketAdmin implements Runnable, SocketAdmin
 				}
 				catch( IOException ex )
 				{
+					System.out.println( "exception thrown in output sender" );
 					ex.printStackTrace();
+					return;
 				}
 			}
 		}
 	}
 
-	public ClientSocketAdmin( int portNum, String host, EventMapper eventMapper )
+	public ClientSocketAdmin( int portNum, String host, EventMapper eventMapper, int maxRequest )
 	{
 		this.host = host;
 		this.port = portNum;
 		this.eventMapper = eventMapper;
+		actionsBlockingQueue = new ArrayBlockingQueue<Message>( maxRequest );
+		outputBlockingQueue = new ArrayBlockingQueue<Message>( maxRequest );
 	}
 
 	private synchronized void connect()
 	{
 		try
 		{
-			System.out.println( "connecting to " + host + port );
+			System.out.println( "connecting to " + host + ":" + port );
 			socket = new Socket( host, port );
-			Thread inputListener = new Thread( new InputListener( actionsBlockingQueue, new ObjectInputStream( socket.getInputStream() ) ) );
+			inputListener = new Thread( new InputListener( this.actionsBlockingQueue, this.socket ) );
 			inputListener.start();
-			Thread outputWritter = new Thread( new OutputSender( outputBlockingQueue, new ObjectOutputStream( socket.getOutputStream() ) ) );
+			outputWritter = new Thread( new OutputSender( outputBlockingQueue, socket ) );
 			outputWritter.start();
 		}
 		catch( Exception ex )
 		{
+			System.out.println( "exception thrown in connect line " + ex.getLocalizedMessage() );
 			ex.printStackTrace();
 		}
 	}
@@ -139,8 +198,26 @@ public class ClientSocketAdmin implements Runnable, SocketAdmin
 	@Override
 	public synchronized void run()
 	{
-		dispatcher = new Dispatcher( this, actionsBlockingQueue, eventMapper  );
+		dispatcher = new Dispatcher( this, this.actionsBlockingQueue, eventMappers );
+		Thread dispatcherThread = new Thread( dispatcher );
+		dispatcherThread.start();
 		connect();
+		while( !Thread.interrupted() )
+		{
+		}
+	}
+
+	public void sendToServer( Message request )
+	{
+		try
+		{
+			this.outputBlockingQueue.put( request );
+		}
+		catch( InterruptedException ex )
+		{
+			System.out.println( "exception thrown in connect line " + ex.getLocalizedMessage() );
+			ex.printStackTrace();
+		}
 	}
 
 	public void setActionToExecute( Message message )
@@ -155,27 +232,56 @@ public class ClientSocketAdmin implements Runnable, SocketAdmin
 		}
 	}
 
-	public void putInternalStateChaneActions( SocketAdmin socketClone )
+	public void changeSocket( int port, String host )
 	{
+		Socket newSocket;
+		System.out.println( "Connecting to " + host + ":" + port );
 		try
 		{
-			internalStateChangeActions.put( socketClone );
+			newSocket = new Socket( host, port );
+			System.out.println( "Connected to new socket" );
 		}
-		catch( InterruptedException ex )
+		catch( ClosedByInterruptException ex )
 		{
+			System.out.println( "input stream interrupted" );
+			return;
+		}
+		catch( UnknownHostException ex )
+		{
+			System.out.println( "exception thrown in change socket line " + ex.getLocalizedMessage() );
 			ex.printStackTrace();
+			return;
 		}
-	}
-
-	public void sendToServer( Message request )
-	{
-		try
+		catch( IOException ex )
 		{
-			outputBlockingQueue.put( request );
-		}
-		catch( InterruptedException ex )
-		{
+			System.out.println( "exception thrown in change socket line " + ex.getLocalizedMessage() );
 			ex.printStackTrace();
+			return;
+		}
+		if( newSocket.isConnected() )
+		{
+			System.out.println( "killing threads" );
+			inputListener.interrupt();
+			System.out.println( "InputListener killed" );
+			outputWritter.interrupt();
+			System.out.println( "OutputListener killed" );
+			this.socket = newSocket;
+			System.out.println( "Getting new listeners" );
+			try
+			{
+				outputWritter = new Thread( new OutputSender( outputBlockingQueue, newSocket ) );
+				outputWritter.start();
+				System.out.println( "has new output listener" );
+				inputListener = new Thread( new InputListener( actionsBlockingQueue, newSocket ) );
+				inputListener.start();
+				System.out.println( "has new Input listener" );
+			}
+			catch( Exception ex )
+			{
+				System.out.println( "exception thrown in change socket line " + ex.getLocalizedMessage() );
+				ex.printStackTrace();
+			}
+			System.out.println( "connected" );
 		}
 	}
 }

@@ -8,10 +8,7 @@ import java.io.Serializable;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.channels.ClosedByInterruptException;
-import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
-import pl.dur.java.dispatchers.Dispatcher;
-import pl.dur.java.events.mappers.EventMapper;
 import pl.dur.java.messages.Message;
 
 /**

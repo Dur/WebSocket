@@ -1,8 +1,5 @@
 package pl.dur.java.client;
 
-/*
- * To change this template, choose Tools | Templates and open the template in the editor.
- */
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;

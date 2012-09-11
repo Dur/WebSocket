@@ -4,17 +4,9 @@
  */
 package pl.dur.java.lowLevelActions;
 
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import pl.dur.java.actions.Action;
 import pl.dur.java.client.ClientSocketAdmin;
-import pl.dur.java.messages.Message;
-import pl.dur.java.socketAdmins.SocketAdmin;
 
 /**
  *
@@ -22,18 +14,18 @@ import pl.dur.java.socketAdmins.SocketAdmin;
  */
 public class NewPortAction extends Action
 {
-	public void execute( Object param )
+	public void execute( HashMap<String, Object> param )
 	{
-		HashMap<String, Object> parametersMap = (HashMap<String, Object>) param;
-		SocketAdmin admin = null; 
+		System.out.println(param.toString());
+		ClientSocketAdmin admin = null; 
 		System.out.println( "New Port action" );
 		String host = "";
 		Integer port = -1;
 		try
 		{
-			admin = (SocketAdmin) parametersMap.get( "SOCKET_ADMIN");
-			port = (Integer) parametersMap.get( "PORT" );
-			host = (String) parameters.get( "HOST" );
+			admin = (ClientSocketAdmin) param.get( "SOCKET_ADMIN");
+			port = (Integer) param.get( "PORT" );
+			host = (String) param.get( "HOST" );
 
 		}
 		catch( NullPointerException ex )
@@ -45,8 +37,6 @@ public class NewPortAction extends Action
 		host = host.substring( addresIndex + 1 );
 		int index = host.lastIndexOf( ":" );
 		host = host.substring( 0, index );
-		Socket socket;
-		ClientSocketAdmin admin = (ClientSocketAdmin) administrator;
 		admin.changeSocket( port, host );
 	}
 	

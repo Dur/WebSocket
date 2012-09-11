@@ -7,9 +7,9 @@ package pl.dur.java.dispatchers;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.concurrent.BlockingQueue;
+import pl.dur.java.client.ClientSocketAdmin;
 import pl.dur.java.events.mappers.EventMapper;
 import pl.dur.java.messages.Message;
-import pl.dur.java.socketAdmins.SocketAdmin;
 
 /**
  *
@@ -18,22 +18,21 @@ import pl.dur.java.socketAdmins.SocketAdmin;
 public class Dispatcher implements Runnable
 {
 	StringTokenizer tokenizer = null;
-	SocketAdmin socketAdministrator;
+	ClientSocketAdmin socketAdministrator;
 	BlockingQueue<Message> requestQueue;
-	List<EventMapper> executionList = null;
+	List<EventMapper> executorsList = null;
 
-	public Dispatcher( SocketAdmin newSocketAdministrator, BlockingQueue<Message> newRequestQueue, List<EventMapper> executionList )
+	public Dispatcher( BlockingQueue<Message> newRequestQueue, List<EventMapper> executorsList )
 	{
-		this.socketAdministrator = newSocketAdministrator;
 		this.requestQueue = newRequestQueue;
-		this.executionList = executionList;
+		this.executorsList = executorsList;
 	}
 
 
 	@Override
 	public void run()
 	{
-		Message message = new Message("", new Object());
+		Message message = new Message("", null);
 		while( !Thread.interrupted() )
 		{
 			try
@@ -46,7 +45,7 @@ public class Dispatcher implements Runnable
 			{
 				ex.printStackTrace();
 			}
-			for(EventMapper mapper : executionList)
+			for(EventMapper mapper : executorsList)
 			{
 				if( mapper.executeAction( message ) != -1)
 				{

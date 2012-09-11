@@ -8,19 +8,17 @@ import java.io.Serializable;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.channels.ClosedByInterruptException;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import pl.dur.java.dispatchers.Dispatcher;
 import pl.dur.java.events.mappers.EventMapper;
 import pl.dur.java.messages.Message;
-import pl.dur.java.socketAdmins.SocketAdmin;
 
 /**
  *
  * @author Dur
  */
-public class ClientSocketAdmin implements Runnable, SocketAdmin
+public class ClientSocketAdmin implements Runnable, Serializable
 {
 	private Socket socket = null;
 	private String host = "";
@@ -29,14 +27,10 @@ public class ClientSocketAdmin implements Runnable, SocketAdmin
 	private ArrayBlockingQueue<Message> outputBlockingQueue = null;
 	//all external actions will be send to dispatcher
 	private ArrayBlockingQueue<Message> actionsBlockingQueue = null;
-	//state changeing 
-	private ArrayBlockingQueue<SocketAdmin> internalStateChangeActions = null;
-	private Dispatcher dispatcher = null;
-	private EventMapper eventMapper = null;
 	Thread outputWritter;
 	Thread inputListener;
 
-	private class InputListener implements Runnable, SocketAdmin, Serializable
+	private class InputListener implements Runnable, Serializable
 	{
 		static final long serialVersionUID = 42L;
 		private ArrayBlockingQueue<Message> actionQueue;
@@ -68,7 +62,7 @@ public class ClientSocketAdmin implements Runnable, SocketAdmin
 
 			}
 			System.out.println( "inputListener is running" );
-			Message message = new Message( "", new Object() );
+			Message message = new Message( "", null );
 			while( !Thread.interrupted() )
 			{
 				try
@@ -142,7 +136,7 @@ public class ClientSocketAdmin implements Runnable, SocketAdmin
 
 			}
 			System.out.println( "Output sender is runing" );
-			Message message = new Message( "", new Object() );
+			Message message = new Message( "", null );
 			while( !Thread.interrupted() )
 			{
 				try
@@ -168,12 +162,11 @@ public class ClientSocketAdmin implements Runnable, SocketAdmin
 		}
 	}
 
-	public ClientSocketAdmin( int portNum, String host, EventMapper eventMapper, int maxRequest )
+	public ClientSocketAdmin( ArrayBlockingQueue<Message> actions, int portNum, String host, int maxRequest )
 	{
 		this.host = host;
 		this.port = portNum;
-		this.eventMapper = eventMapper;
-		actionsBlockingQueue = new ArrayBlockingQueue<Message>( maxRequest );
+		actionsBlockingQueue = actions;
 		outputBlockingQueue = new ArrayBlockingQueue<Message>( maxRequest );
 	}
 
@@ -198,9 +191,6 @@ public class ClientSocketAdmin implements Runnable, SocketAdmin
 	@Override
 	public synchronized void run()
 	{
-		dispatcher = new Dispatcher( this, this.actionsBlockingQueue, eventMappers );
-		Thread dispatcherThread = new Thread( dispatcher );
-		dispatcherThread.start();
 		connect();
 		while( !Thread.interrupted() )
 		{

@@ -10,12 +10,16 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import pl.dur.java.dispatchers.Dispatcher;
 import pl.dur.java.events.mappers.EventMapper;
 import pl.dur.java.events.mappers.StandardClientEventMapper;
 import pl.dur.java.messages.Message;
@@ -36,8 +40,9 @@ class ClientSideView extends JFrame implements ActionListener
 	private ClientSocketAdmin requestSender = null;
 	private NewDataListener serverState = null;
 	private static int MAX_PORT_NUM = 65000;
-	private EventMapper eventMapper = new StandardClientEventMapper();
+	private List<EventMapper> eventMappers = new ArrayList<EventMapper>();
 	private ArrayBlockingQueue<Message> actions = new ArrayBlockingQueue<Message>( 10 );
+	Dispatcher dispatcher = null;
 
 	ClientSideView( int portNum, String host )
 	{
@@ -60,7 +65,9 @@ class ClientSideView extends JFrame implements ActionListener
 				}
 				if( webSocketPort != 0 )
 				{
-					requestSender.sendToServer( new Message( "WS", webSocketPort ) );
+					HashMap<String, Object> params = new HashMap<String, Object>();
+					params.put("WEBSOCKET_PORT", webSocketPort);
+					requestSender.sendToServer( new Message( "WS", params ) );
 				}
 			}
 		} );
@@ -89,7 +96,11 @@ class ClientSideView extends JFrame implements ActionListener
 //		Thread serverStateThread = new Thread( serverState );
 //		serverStateThread.start();
 
-		requestSender = new ClientSocketAdmin( portNum, host, eventMapper, 10 );
+		requestSender = new ClientSocketAdmin( actions, portNum, host, 10 );
+		eventMappers.add( new StandardClientEventMapper( null, requestSender) );
+		dispatcher = new Dispatcher( actions, eventMappers );
+		Thread dispatcherThread = new Thread(dispatcher);
+		dispatcherThread.start();
 		Thread requestSenderThread = new Thread( requestSender );
 		requestSenderThread.start();
 
@@ -107,7 +118,7 @@ class ClientSideView extends JFrame implements ActionListener
 		{
 			String text = textField.getText();
 			textField.setText( new String( "" ) );
-			requestSender.sendToServer( new Message( text, new Object() ) );
+			requestSender.sendToServer( new Message( text, null ) );
 		}
 	}
 

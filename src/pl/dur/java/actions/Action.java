@@ -4,9 +4,7 @@
  */
 package pl.dur.java.actions;
 
-import java.net.Socket;
-import pl.dur.java.messages.Message;
-import pl.dur.java.socketAdmins.SocketAdmin;
+import java.util.HashMap;
 
 /**
  *
@@ -14,7 +12,7 @@ import pl.dur.java.socketAdmins.SocketAdmin;
  */
 public abstract class Action
 {
-	public void execute(Object param)
+	public void execute(HashMap<String, Object> params)
 	{
 		throw new UnsupportedOperationException( "Must be implementet by extensive class");
 	}

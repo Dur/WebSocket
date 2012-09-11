@@ -14,29 +14,42 @@ public abstract class EventMapper
 
 	public EventMapper()
 	{
-		this.actionMapper  = new HashMap<String, Action>();
+		this.actionMapper = new HashMap<String, Action>();
 	}
-	
-	public EventMapper(HashMap<String, Action> mapper)
+
+	public EventMapper( HashMap<String, Action> mapper )
 	{
-		this.actionMapper = mapper;
+		if( mapper != null )
+		{
+			this.actionMapper = mapper;
+		}
+		else
+		{
+			actionMapper = new HashMap<String, Action>();
+		}
 	}
 
 	public abstract int executeAction( Message message );
-	
-	public void setOrReplaceAction(String name, Action action)
+
+	public void setOrReplaceAction( String name, Action action )
 	{
 		actionMapper.put( name, action );
 	}
-	
-	public int setAction(String name, Action action)
+
+	public int setAction( String name, Action action )
 	{
 		Action previousAction = this.actionMapper.put( name, action );
-		if(	previousAction != null )
+		if( previousAction != null )
 		{
 			actionMapper.put( name, previousAction );
 			return -1;
 		}
 		return 0;
+	}
+	
+	@Override
+	public String toString()
+	{
+		return actionMapper.toString();
 	}
 }

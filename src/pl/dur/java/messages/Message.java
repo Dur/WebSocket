@@ -5,6 +5,7 @@
 package pl.dur.java.messages;
 
 import java.io.Serializable;
+import java.util.HashMap;
 
 /**
  *
@@ -14,15 +15,15 @@ public class Message implements Serializable
 {
 	static final long serialVersionUID = 42L;
 	private final String request;
-	private final Object params;
+	private final HashMap<String,Object> params;
 
-	public Message( String request, Object params )
+	public Message( String request, HashMap<String, Object> params )
 	{
 		this.params = params;
 		this.request = request;
 	}
 
-	public Object getParams()
+	public HashMap<String, Object> getParams()
 	{
 		if( this.params != null )
 		{

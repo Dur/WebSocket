@@ -4,8 +4,8 @@
  */
 package pl.dur.java.lowLevelActions;
 
+import java.util.HashMap;
 import pl.dur.java.actions.Action;
-import pl.dur.java.socketAdmins.SocketAdmin;
 
 /**
  *
@@ -15,7 +15,7 @@ public class TestAction extends Action
 {
 
 	@Override
-	public void execute( Object param )
+	public void execute( HashMap<String, Object> params )
 	{
 		System.out.println("Executed low level  TEST action");
 	}

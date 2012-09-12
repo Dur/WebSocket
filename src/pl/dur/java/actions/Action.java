@@ -4,7 +4,7 @@
  */
 package pl.dur.java.actions;
 
-import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -12,8 +12,5 @@ import java.util.HashMap;
  */
 public abstract class Action
 {
-	public void execute(HashMap<String, Object> params)
-	{
-		throw new UnsupportedOperationException( "Must be implementet by extensive class");
-	}
+	public abstract void execute(Map<String, Object> params);
 }

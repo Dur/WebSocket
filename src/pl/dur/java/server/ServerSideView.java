@@ -4,13 +4,11 @@
  */
 package pl.dur.java.server;
 
-import com.sun.org.apache.bcel.internal.generic.TABLESWITCH;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.*;
-import java.io.IOException;
 import javax.swing.*;
-import pl.dur.java.model.ConnectionHolder;
+import javax.swing.JPanel;
 
 /**
  *
@@ -18,12 +16,11 @@ import pl.dur.java.model.ConnectionHolder;
  */
 public class ServerSideView extends JFrame implements ActionListener
 {
-	
-	JButton button;
-	JPanel panel;
-	JTextArea textArea = new JTextArea();
-	JTextField textField;
-	ServerSide serverSide;
+	private final JButton button;
+	private final JPanel panel;
+	private JTextArea textArea = new JTextArea();
+	private JTextField textField;
+	private final ServerSide serverSide;
 
 	public ServerSideView()
 	{
@@ -59,8 +56,6 @@ public class ServerSideView extends JFrame implements ActionListener
 	protected void finalize()
 	{
 	}
-
-	
 
 	public static void main( String args[] )
 	{

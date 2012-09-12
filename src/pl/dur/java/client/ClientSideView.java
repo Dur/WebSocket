@@ -18,6 +18,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import pl.dur.java.dispatchers.Dispatcher;
 import pl.dur.java.events.mappers.EventMapper;
+import pl.dur.java.events.mappers.ResponseEventMapper;
 import pl.dur.java.events.mappers.StandardClientEventMapper;
 import pl.dur.java.messages.Message;
 
@@ -95,6 +96,7 @@ class ClientSideView extends JFrame implements ActionListener
 
 		requestSender = new ClientSocketAdmin( actions, portNum, host, 10 );
 		eventMappers.add( new StandardClientEventMapper( null, requestSender) );
+		eventMappers.add( new ResponseEventMapper( requestSender ) );
 		dispatcher = new Dispatcher( actions, eventMappers );
 		Thread dispatcherThread = new Thread(dispatcher);
 		dispatcherThread.start();

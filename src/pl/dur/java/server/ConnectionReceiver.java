@@ -6,12 +6,11 @@ package pl.dur.java.server;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.HashSet;
-import pl.dur.java.dispatchers.Dispatcher;
+import java.util.concurrent.BlockingQueue;
 import pl.dur.java.messages.Message;
 import pl.dur.java.model.ConnectionHolder;
 
@@ -25,16 +24,21 @@ public class ConnectionReceiver implements Runnable
 	private HashSet<Integer> usedPorts = new HashSet<Integer>();
 	private ServerSocket server = null;
 	private Socket client = null;
-	private Integer socketNum = 0;
+	private Integer portNum = 0;
 	private ConnectionHolder connectionHolder = new ConnectionHolder();
 	private ServerStateChangeListener serverStateListener;
-	private Dispatcher dispatcher = null;
 	private Message response = null;
 	private ObjectOutputStream output = null;
+	private int localPort;
+	private BlockingQueue<Message> actions;
+	private int queueSize;
 
-	ConnectionReceiver()
-	{ //Begin Constructor
-	} //End Constructor
+	ConnectionReceiver( BlockingQueue<Message> actionsQueue, int port, int newQueueSize )
+	{
+		this.localPort = port;
+		this.actions = actionsQueue;
+		this.queueSize = newQueueSize;
+	}
 
 	public void listenSocket()
 	{
@@ -62,20 +66,20 @@ public class ConnectionReceiver implements Runnable
 			}
 			try
 			{
-				socketNum = (int) (Math.random() * MAX_PORT_NUM);
-				while( socketNum.intValue() < 80 )
+				portNum = (int) ( Math.random() * MAX_PORT_NUM );
+				while( portNum.intValue() < 80 )
 				{
-					socketNum = (int) (Math.random() * MAX_PORT_NUM);
+					portNum = (int) (Math.random() * MAX_PORT_NUM);
 				}
-				usedPorts.add( socketNum );
+				usedPorts.add( portNum );
 				output = new ObjectOutputStream( client.getOutputStream() );
-				RequestListener clientRequestListener = new RequestListener( socketNum, dispatcher );
+				RequestListener clientRequestListener = new RequestListener( actions, portNum.intValue(), server.getInetAddress().toString(), this.queueSize );
 				Thread thread = new Thread( clientRequestListener );
 				thread.start();
-				System.out.println( "Selected port for client " + socketNum );
-				HashMap<String,Object> params = new HashMap<String,Object>();
-				params.put("HOST", this.server.getLocalSocketAddress().toString());
-				params.put("PORT", socketNum);
+				System.out.println( "Selected port for client " + portNum );
+				HashMap<String, Object> params = new HashMap<String, Object>();
+				params.put( "HOST", this.server.getLocalSocketAddress().toString() );
+				params.put( "PORT", portNum );
 				response = new Message( "NP", params );
 				System.out.println( "before sending message" );
 				output.writeObject( response );

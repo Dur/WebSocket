@@ -4,7 +4,7 @@
  */
 package pl.dur.java.lowLevelActions;
 
-import java.util.HashMap;
+import java.util.Map;
 import pl.dur.java.actions.Action;
 
 /**
@@ -15,7 +15,7 @@ public class TestAction extends Action
 {
 
 	@Override
-	public void execute( HashMap<String, Object> params )
+	public void execute( Map<String, Object> params )
 	{
 		System.out.println("Executed low level  TEST action");
 	}

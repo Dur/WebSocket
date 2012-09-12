@@ -4,7 +4,7 @@
  */
 package pl.dur.java.lowLevelActions;
 
-import java.util.HashMap;
+import java.util.Map;
 import pl.dur.java.actions.Action;
 import pl.dur.java.client.ClientSocketAdmin;
 
@@ -14,7 +14,7 @@ import pl.dur.java.client.ClientSocketAdmin;
  */
 public class NewPortAction extends Action
 {
-	public void execute( HashMap<String, Object> param )
+	public void execute( Map<String, Object> param )
 	{
 		System.out.println(param.toString());
 		ClientSocketAdmin admin = null; 

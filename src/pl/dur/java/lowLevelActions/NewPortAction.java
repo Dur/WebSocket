@@ -7,6 +7,7 @@ package pl.dur.java.lowLevelActions;
 import java.util.Map;
 import pl.dur.java.actions.Action;
 import pl.dur.java.client.ClientSocketAdmin;
+import pl.dur.java.components.register.ClientComponentsRegister;
 
 /**
  *
@@ -23,7 +24,7 @@ public class NewPortAction extends Action
 		Integer port = -1;
 		try
 		{
-			admin = (ClientSocketAdmin) param.get( "SOCKET_ADMIN");
+			admin = (ClientSocketAdmin) ClientComponentsRegister.getComponent( "SOCKET_ADMIN");
 			port = (Integer) param.get( "PORT" );
 			host = (String) param.get( "HOST" );
 

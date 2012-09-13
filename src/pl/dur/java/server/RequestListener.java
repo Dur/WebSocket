@@ -28,12 +28,12 @@ public class RequestListener implements Runnable
 	private BlockingQueue<Message> outputBlockingQueue = null;
 	//all external actions will be send to dispatcher
 	private BlockingQueue<Message> actionsBlockingQueue = null;
-	Thread outputWritter;
-	Thread inputListener;
+	private Thread outputWritter;
+	private Thread inputListener;
 
 	public RequestListener( BlockingQueue<Message> actions, int portNum, String host, int maxRequest )
 	{
-		this.port = port;
+		this.port = portNum;
 		actionsBlockingQueue = actions;
 		outputBlockingQueue = new ArrayBlockingQueue<Message>( maxRequest );
 	}

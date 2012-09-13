@@ -20,38 +20,32 @@ public class Dispatcher implements Runnable
 	StringTokenizer tokenizer = null;
 	ClientSocketAdmin socketAdministrator;
 	BlockingQueue<Message> requestQueue;
-	List<EventMapper> executorsList = null;
+	EventMapper actionMapper = null;
 
-	public Dispatcher( BlockingQueue<Message> newRequestQueue, List<EventMapper> executorsList )
+	public Dispatcher( BlockingQueue<Message> newRequestQueue, EventMapper newActionMapper )
 	{
 		this.requestQueue = newRequestQueue;
-		this.executorsList = executorsList;
+		this.actionMapper = newActionMapper;
 	}
-
 
 	@Override
 	public void run()
 	{
-		Message message = new Message("", null);
+		Message message = new Message( "", null );
 		while( !Thread.interrupted() )
 		{
 			try
 			{
-				System.out.println("Dispatcher wait for message in queue");
+				System.out.println( "Dispatcher wait for message in queue" );
 				message = requestQueue.take();
-				System.out.println("Dispatcher getting request to dispatch");
+				System.out.println( "Dispatcher getting request to dispatch" );
 			}
 			catch( InterruptedException ex )
 			{
 				ex.printStackTrace();
 			}
-			for(EventMapper mapper : executorsList)
-			{
-				if( mapper.executeAction( message ) != -1)
-				{
-					break;
-				}
-			}
+			actionMapper.executeAction( message );
 		}
 	}
 }
+

@@ -16,10 +16,6 @@ public class ConnectionHolder
 
 	public void stateChanged(String change)
 	{
-		for(Integer key : connections.keySet() )
-		{
-			connections.get( key ).serverStateChanged( change );
-		}
 	}
 
 	public void addConnection( Integer socketNum, RequestListener thread )

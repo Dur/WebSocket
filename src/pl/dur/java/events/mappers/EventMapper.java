@@ -8,7 +8,7 @@ import pl.dur.java.messages.Message;
  *
  * @author Dur
  */
-public abstract class EventMapper
+public class EventMapper
 {
 	protected HashMap<String, Action> actionMapper;
 
@@ -17,19 +17,26 @@ public abstract class EventMapper
 		this.actionMapper = new HashMap<String, Action>();
 	}
 
-	public EventMapper( HashMap<String, Action> mapper )
+	public EventMapper( HashMap<String, Action> actions )
 	{
-		if( mapper != null )
+		if( actions != null )
 		{
-			this.actionMapper = mapper;
-		}
-		else
-		{
-			actionMapper = new HashMap<String, Action>();
+			this.actionMapper.putAll( actions );
 		}
 	}
 
-	public abstract int executeAction( Message message );
+	public int executeAction( Message message )
+	{
+		HashMap<String, Object> params = message.getParams();
+		int result = -1;
+		Action action = this.actionMapper.get( message.getRequest() );
+		if( action != null )
+		{
+			action.execute( params );
+			result = 0;
+		}
+		return result;
+	}
 
 	public void setOrReplaceAction( String name, Action action )
 	{

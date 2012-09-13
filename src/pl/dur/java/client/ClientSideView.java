@@ -7,19 +7,17 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import pl.dur.java.components.register.ClientComponentsRegister;
 import pl.dur.java.dispatchers.Dispatcher;
 import pl.dur.java.events.mappers.EventMapper;
-import pl.dur.java.events.mappers.ResponseEventMapper;
-import pl.dur.java.events.mappers.StandardClientEventMapper;
+import pl.dur.java.lowLevelActions.NewPortAction;
 import pl.dur.java.messages.Message;
 
 /**
@@ -38,12 +36,13 @@ class ClientSideView extends JFrame implements ActionListener
 	private ClientSocketAdmin requestSender = null;
 	private NewDataListener serverState = null;
 	private static int MAX_PORT_NUM = 65000;
-	private List<EventMapper> eventMappers = new ArrayList<EventMapper>();
+	private EventMapper eventMapper = new EventMapper();
 	private ArrayBlockingQueue<Message> actions = new ArrayBlockingQueue<Message>( 10 );
 	Dispatcher dispatcher = null;
 
 	ClientSideView( int portNum, String host )
 	{
+		eventMapper.setAction( "NP", new NewPortAction() );
 		text = new JLabel( "Text to send over socket:" );
 		textField = new JTextField( 20 );
 		button = new JButton( "Click Me" );
@@ -95,13 +94,12 @@ class ClientSideView extends JFrame implements ActionListener
 //		serverStateThread.start();
 
 		requestSender = new ClientSocketAdmin( actions, portNum, host, 10 );
-		eventMappers.add( new StandardClientEventMapper( null, requestSender) );
-		eventMappers.add( new ResponseEventMapper( requestSender ) );
-		dispatcher = new Dispatcher( actions, eventMappers );
+		dispatcher = new Dispatcher( actions, eventMapper );
 		Thread dispatcherThread = new Thread(dispatcher);
 		dispatcherThread.start();
 		Thread requestSenderThread = new Thread( requestSender );
 		requestSenderThread.start();
+		ClientComponentsRegister.addComponent( "SOCKET_ADMIN", requestSender);
 
 //		NewDataListener newDataListener = new NewDataListener( 10045 );
 //		Thread newDataListenerThread = new Thread( newDataListener );

@@ -4,13 +4,11 @@
  */
 package pl.dur.java.server;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import pl.dur.java.components.register.ServerComponentsRegister;
 import pl.dur.java.dispatchers.Dispatcher;
 import pl.dur.java.events.mappers.EventMapper;
-import pl.dur.java.events.mappers.StandardServerMapper;
 import pl.dur.java.messages.Message;
 
 /**
@@ -21,22 +19,26 @@ public class ServerSide
 {
 	private ConnectionReceiver connectionReceiver;
 	private BlockingQueue<Message> actions;
-	private List<EventMapper> mappers;
+	private EventMapper mapper;
 	private int listenPort;
 	private int queueSize;
 
 	public ServerSide()
 	{
 		queueSize = 100;
-		actions = new ArrayBlockingQueue<Message>(queueSize);
-		mappers = new ArrayList<EventMapper>();
-		mappers.add( new StandardServerMapper() );
-		Dispatcher dispatcher = new Dispatcher( actions, mappers );
-		connectionReceiver = new ConnectionReceiver( actions, listenPort, queueSize );
-		Thread dispatcherThred = new Thread(dispatcher);
+		listenPort = 80;
+		ServerComponentsRegister.addComponent( "QUEUE_SIZE", queueSize );
+		mapper = new EventMapper();
+		ServerComponentsRegister.addComponent( "MAPPERS", mapper );
+		actions = new ArrayBlockingQueue<Message>( queueSize );
+		ServerComponentsRegister.addComponent( "ACTIONS", actions );
+		Dispatcher dispatcher = new Dispatcher( actions, mapper );
+		ServerComponentsRegister.addComponent( "DISPATCHER", dispatcher );
+		connectionReceiver = new ConnectionReceiver( listenPort );
+		ServerComponentsRegister.addComponent( "CONNECTION_RECEIVER", connectionReceiver );
+		Thread dispatcherThred = new Thread( dispatcher );
 		Thread connectionReceiverThread = new Thread( connectionReceiver );
 		connectionReceiverThread.start();
 		dispatcherThred.start();
 	}
-
 }

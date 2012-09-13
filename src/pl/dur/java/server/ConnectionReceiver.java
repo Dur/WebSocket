@@ -11,6 +11,7 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.BlockingQueue;
+import pl.dur.java.components.register.ServerComponentsRegister;
 import pl.dur.java.messages.Message;
 import pl.dur.java.model.ConnectionHolder;
 
@@ -33,11 +34,12 @@ public class ConnectionReceiver implements Runnable
 	private BlockingQueue<Message> actions;
 	private int queueSize;
 
-	ConnectionReceiver( BlockingQueue<Message> actionsQueue, int port, int newQueueSize )
+	ConnectionReceiver( int port )
 	{
+		this.actions = (BlockingQueue<Message>) ServerComponentsRegister.getComponent( "ACTIONS");
+		this.queueSize = (int) ServerComponentsRegister.getComponent( "QUEUE_SIZE");
+		ServerComponentsRegister.addComponent( "CONNECTION_HOLDER", connectionHolder);
 		this.localPort = port;
-		this.actions = actionsQueue;
-		this.queueSize = newQueueSize;
 	}
 
 	public void listenSocket()
@@ -45,7 +47,7 @@ public class ConnectionReceiver implements Runnable
 		System.out.println( "before binding port" );
 		try
 		{
-			server = new ServerSocket( 80 );
+			server = new ServerSocket( localPort );
 		}
 		catch( IOException e )
 		{

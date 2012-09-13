@@ -27,7 +27,6 @@ public class ConnectionReceiver implements Runnable
 	private Socket client = null;
 	private Integer portNum = 0;
 	private ConnectionHolder connectionHolder = new ConnectionHolder();
-	private ServerStateChangeListener serverStateListener;
 	private Message response = null;
 	private ObjectOutputStream output = null;
 	private int localPort;
@@ -59,7 +58,9 @@ public class ConnectionReceiver implements Runnable
 		{
 			try
 			{
+				System.out.println("Server waiting for client connection");
 				client = server.accept();
+				System.out.println("Connection from "+ client.getRemoteSocketAddress().toString());
 			}
 			catch( IOException e )
 			{
@@ -74,16 +75,17 @@ public class ConnectionReceiver implements Runnable
 					portNum = (int) (Math.random() * MAX_PORT_NUM);
 				}
 				usedPorts.add( portNum );
+				System.out.println( "New port for client " + portNum );
 				output = new ObjectOutputStream( client.getOutputStream() );
 				RequestListener clientRequestListener = new RequestListener( actions, portNum.intValue(), server.getInetAddress().toString(), this.queueSize );
 				Thread thread = new Thread( clientRequestListener );
 				thread.start();
-				System.out.println( "Selected port for client " + portNum );
+				System.out.println("RequestListener started");
 				HashMap<String, Object> params = new HashMap<String, Object>();
 				params.put( "HOST", this.server.getLocalSocketAddress().toString() );
 				params.put( "PORT", portNum );
 				response = new Message( "NP", params );
-				System.out.println( "before sending message" );
+				System.out.println( "before sending message "+ response.getRequest() );
 				output.writeObject( response );
 				System.out.println( "after sending message" );
 			}

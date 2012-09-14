@@ -14,6 +14,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import pl.dur.java.actions.EchoAction;
 import pl.dur.java.components.register.ClientComponentsRegister;
 import pl.dur.java.dispatchers.Dispatcher;
 import pl.dur.java.events.mappers.EventMapper;
@@ -43,6 +44,7 @@ class ClientSideView extends JFrame implements ActionListener
 	ClientSideView( int portNum, String host )
 	{
 		eventMapper.setAction( "NP", new NewPortAction() );
+		eventMapper.setAction( "ECHO", new EchoAction());
 		text = new JLabel( "Text to send over socket:" );
 		textField = new JTextField( 20 );
 		button = new JButton( "Click Me" );
@@ -115,7 +117,7 @@ class ClientSideView extends JFrame implements ActionListener
 		{
 			String text = textField.getText();
 			textField.setText( new String( "" ) );
-			requestSender.sendToServer( new Message( text, null ) );
+			requestSender.sendToServer( new Message( text, new HashMap<String, Object>() ) );
 		}
 	}
 

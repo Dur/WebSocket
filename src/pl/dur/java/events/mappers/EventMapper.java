@@ -1,6 +1,7 @@
 package pl.dur.java.events.mappers;
 
 import java.util.HashMap;
+import java.util.Map;
 import pl.dur.java.actions.Action;
 import pl.dur.java.messages.Message;
 
@@ -27,7 +28,7 @@ public class EventMapper
 
 	public int executeAction( Message message )
 	{
-		HashMap<String, Object> params = message.getParams();
+		HashMap<String, Object> params = (HashMap<String, Object>) message.getParams();
 		int result = -1;
 		Action action = this.actionMapper.get( message.getRequest() );
 		if( action != null )
@@ -53,6 +54,12 @@ public class EventMapper
 		}
 		return 0;
 	}
+	
+	public void addActions(Map<String, Action> actions)
+	{
+		this.actionMapper.putAll( actions );
+	}
+	
 	
 	@Override
 	public String toString()

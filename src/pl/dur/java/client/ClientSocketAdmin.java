@@ -27,6 +27,143 @@ public class ClientSocketAdmin implements Runnable, Serializable
 	Thread outputWritter;
 	Thread inputListener;
 
+	public ClientSocketAdmin( ArrayBlockingQueue<Message> actions, int portNum, String host, int maxRequest )
+	{
+		this.host = host;
+		this.port = portNum;
+		actionsBlockingQueue = actions;
+		outputBlockingQueue = new ArrayBlockingQueue<Message>( maxRequest );
+	}
+
+	private synchronized void connect()
+	{
+		try
+		{
+			System.out.println( "connecting to " + host + ":" + port );
+			socket = new Socket( host, port );
+			inputListener = new Thread( new InputListener( this.actionsBlockingQueue, this.socket ) );
+			inputListener.start();
+			outputWritter = new Thread( new OutputSender( outputBlockingQueue, socket ) );
+			outputWritter.start();
+		}
+		catch( Exception ex )
+		{
+			System.out.println( "exception thrown in connect line " + ex.getLocalizedMessage() );
+			ex.printStackTrace();
+		}
+	}
+
+	@Override
+	public synchronized void run()
+	{
+		connect();
+		while( !Thread.interrupted() )
+		{
+			try
+			{
+				this.wait();
+			}
+			catch( InterruptedException ex )
+			{
+				this.finalize();
+			}
+		}
+	}
+
+	public void sendToServer( Message request )
+	{
+		try
+		{
+			System.out.println( "sending to server " + request.getRequest() );
+			this.outputBlockingQueue.put( request );
+		}
+		catch( InterruptedException ex )
+		{
+			System.out.println( "exception thrown in connect line " + ex.getLocalizedMessage() );
+			ex.printStackTrace();
+		}
+	}
+
+	public void setActionToExecute( Message message )
+	{
+		try
+		{
+			actionsBlockingQueue.put( message );
+		}
+		catch( InterruptedException ex )
+		{
+			ex.printStackTrace();
+		}
+	}
+
+	public void changeSocket( int port, String host )
+	{
+		Socket newSocket;
+		System.out.println( "Connecting to " + host + ":" + port );
+		try
+		{
+			newSocket = new Socket( host, port );
+			System.out.println( "Connected to new socket" );
+		}
+		catch( ClosedByInterruptException ex )
+		{
+			System.out.println( "input stream interrupted" );
+			return;
+		}
+		catch( UnknownHostException ex )
+		{
+			System.out.println( "exception thrown in change socket line " + ex.getLocalizedMessage() );
+			ex.printStackTrace();
+			return;
+		}
+		catch( IOException ex )
+		{
+			System.out.println( "exception thrown in change socket line " + ex.getLocalizedMessage() );
+			ex.printStackTrace();
+			return;
+		}
+		if( newSocket.isConnected() )
+		{
+			System.out.println( "killing threads" );
+			inputListener.interrupt();
+			System.out.println( "InputListener killed" );
+			outputWritter.interrupt();
+			System.out.println( "OutputListener killed" );
+			this.socket = newSocket;
+			System.out.println( "Getting new listeners" );
+			try
+			{
+				outputWritter = new Thread( new OutputSender( outputBlockingQueue, newSocket ) );
+				outputWritter.start();
+				System.out.println( "has new output listener" );
+				inputListener = new Thread( new InputListener( actionsBlockingQueue, newSocket ) );
+				inputListener.start();
+				System.out.println( "has new Input listener" );
+			}
+			catch( Exception ex )
+			{
+				System.out.println( "exception thrown in change socket line " + ex.getLocalizedMessage() );
+				ex.printStackTrace();
+			}
+			System.out.println( "connected" );
+		}
+	}
+
+	@Override
+	protected void finalize()
+	{
+		try
+		{
+			this.inputListener.interrupt();
+			this.outputWritter.interrupt();
+			this.socket.close();
+		}
+		catch( IOException ex )
+		{
+			ex.printStackTrace();
+		}
+	}
+
 	private class InputListener implements Runnable, Serializable
 	{
 		static final long serialVersionUID = 42L;
@@ -81,9 +218,9 @@ public class ClientSocketAdmin implements Runnable, Serializable
 					System.out.println( "IO Exception in Input listener" );
 					return;
 				}
-				catch(Exception ex)
+				catch( Exception ex )
 				{
-					System.out.println("Unknown excepcion, killing thread input listener");
+					System.out.println( "Unknown excepcion, killing thread input listener" );
 					return;
 				}
 				try
@@ -156,119 +293,6 @@ public class ClientSocketAdmin implements Runnable, Serializable
 					return;
 				}
 			}
-		}
-	}
-
-	public ClientSocketAdmin( ArrayBlockingQueue<Message> actions, int portNum, String host, int maxRequest )
-	{
-		this.host = host;
-		this.port = portNum;
-		actionsBlockingQueue = actions;
-		outputBlockingQueue = new ArrayBlockingQueue<Message>( maxRequest );
-	}
-
-	private synchronized void connect()
-	{
-		try
-		{
-			System.out.println( "connecting to " + host + ":" + port );
-			socket = new Socket( host, port );
-			inputListener = new Thread( new InputListener( this.actionsBlockingQueue, this.socket ) );
-			inputListener.start();
-			outputWritter = new Thread( new OutputSender( outputBlockingQueue, socket ) );
-			outputWritter.start();
-		}
-		catch( Exception ex )
-		{
-			System.out.println( "exception thrown in connect line " + ex.getLocalizedMessage() );
-			ex.printStackTrace();
-		}
-	}
-
-	@Override
-	public synchronized void run()
-	{
-		connect();
-		while( !Thread.interrupted() )
-		{
-		}
-	}
-
-	public void sendToServer( Message request )
-	{
-		try
-		{
-			this.outputBlockingQueue.put( request );
-		}
-		catch( InterruptedException ex )
-		{
-			System.out.println( "exception thrown in connect line " + ex.getLocalizedMessage() );
-			ex.printStackTrace();
-		}
-	}
-
-	public void setActionToExecute( Message message )
-	{
-		try
-		{
-			actionsBlockingQueue.put( message );
-		}
-		catch( InterruptedException ex )
-		{
-			ex.printStackTrace();
-		}
-	}
-
-	public void changeSocket( int port, String host )
-	{
-		Socket newSocket;
-		System.out.println( "Connecting to " + host + ":" + port );
-		try
-		{
-			newSocket = new Socket( host, port );
-			System.out.println( "Connected to new socket" );
-		}
-		catch( ClosedByInterruptException ex )
-		{
-			System.out.println( "input stream interrupted" );
-			return;
-		}
-		catch( UnknownHostException ex )
-		{
-			System.out.println( "exception thrown in change socket line " + ex.getLocalizedMessage() );
-			ex.printStackTrace();
-			return;
-		}
-		catch( IOException ex )
-		{
-			System.out.println( "exception thrown in change socket line " + ex.getLocalizedMessage() );
-			ex.printStackTrace();
-			return;
-		}
-		if( newSocket.isConnected() )
-		{
-			System.out.println( "killing threads" );
-			inputListener.interrupt();
-			System.out.println( "InputListener killed" );
-			outputWritter.interrupt();
-			System.out.println( "OutputListener killed" );
-			this.socket = newSocket;
-			System.out.println( "Getting new listeners" );
-			try
-			{
-				outputWritter = new Thread( new OutputSender( outputBlockingQueue, newSocket ) );
-				outputWritter.start();
-				System.out.println( "has new output listener" );
-				inputListener = new Thread( new InputListener( actionsBlockingQueue, newSocket ) );
-				inputListener.start();
-				System.out.println( "has new Input listener" );
-			}
-			catch( Exception ex )
-			{
-				System.out.println( "exception thrown in change socket line " + ex.getLocalizedMessage() );
-				ex.printStackTrace();
-			}
-			System.out.println( "connected" );
 		}
 	}
 }

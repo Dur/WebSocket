@@ -28,7 +28,7 @@ public class ServerSide
 		queueSize = 100;
 		listenPort = 80;
 		ServerComponentsRegister.addComponent( "QUEUE_SIZE", queueSize );
-		mapper = new EventMapper();
+		mapper = new EventMapper( new ServerActionConfigurator().getConfigurator() );
 		ServerComponentsRegister.addComponent( "MAPPERS", mapper );
 		actions = new ArrayBlockingQueue<Message>( queueSize );
 		ServerComponentsRegister.addComponent( "ACTIONS", actions );

@@ -5,10 +5,14 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OptionalDataException;
 import java.io.Serializable;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.channels.ClosedByInterruptException;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import pl.dur.java.messages.Message;
 
 /**
@@ -20,12 +24,14 @@ public class ClientSocketAdmin implements Runnable, Serializable
 	private Socket socket = null;
 	private String host = "";
 	private int port = 0;
+	private ServerSocket webSocket = null;
 	//send to server
 	private ArrayBlockingQueue<Message> outputBlockingQueue = null;
 	//all external actions will be send to dispatcher
 	private ArrayBlockingQueue<Message> actionsBlockingQueue = null;
-	Thread outputWritter;
-	Thread inputListener;
+	private Thread outputWritter;
+	private Thread inputListener;
+	private Thread webSocketListenerThread;
 
 	public ClientSocketAdmin( ArrayBlockingQueue<Message> actions, int portNum, String host, int maxRequest )
 	{
@@ -149,6 +155,12 @@ public class ClientSocketAdmin implements Runnable, Serializable
 		}
 	}
 
+	public void  openWebSocketPort( int port )
+	{
+		webSocketListenerThread = new Thread( new WebSocketListener( actionsBlockingQueue, webSocket ) );
+		webSocketListenerThread.start();
+	}
+
 	@Override
 	protected void finalize()
 	{
@@ -161,6 +173,49 @@ public class ClientSocketAdmin implements Runnable, Serializable
 		catch( IOException ex )
 		{
 			ex.printStackTrace();
+		}
+	}
+
+	private class WebSocketListener implements Runnable, Serializable
+	{
+		static final long serialVersionUID = 42L;
+		private BlockingQueue<Message> actionsQueue;
+		private ObjectInputStream input;
+		ServerSocket socket;
+		Socket connection;
+
+		public WebSocketListener( BlockingQueue<Message> newActions, ServerSocket newSocket )
+		{
+			this.actionsQueue = newActions;
+			this.socket = newSocket;
+		}
+
+		@Override
+		public void run()
+		{
+			try
+			{
+				connection = this.socket.accept();
+				input = new ObjectInputStream( connection.getInputStream() );
+				Message message = (Message) input.readObject();
+				actionsQueue.put( message );
+				socket.close();
+				connection.close();
+			}
+			catch( InterruptedException ex )
+			{
+				ex.printStackTrace();
+				return;
+			}
+			catch( ClassNotFoundException ex )
+			{
+				ex.printStackTrace();
+				return;
+			}
+			catch( IOException ex )
+			{
+				Logger.getLogger( ClientSocketAdmin.class.getName() ).log( Level.SEVERE, null, ex );
+			}
 		}
 	}
 

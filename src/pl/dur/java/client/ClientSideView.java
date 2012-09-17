@@ -18,7 +18,7 @@ import pl.dur.java.actions.EchoAction;
 import pl.dur.java.components.register.ClientComponentsRegister;
 import pl.dur.java.dispatchers.Dispatcher;
 import pl.dur.java.events.mappers.EventMapper;
-import pl.dur.java.lowLevelActions.NewPortAction;
+import pl.dur.java.actions.NewPortAction;
 import pl.dur.java.messages.Message;
 
 /**
@@ -37,14 +37,13 @@ class ClientSideView extends JFrame implements ActionListener
 	private ClientSocketAdmin requestSender = null;
 	private NewDataListener serverState = null;
 	private static int MAX_PORT_NUM = 65000;
-	private EventMapper eventMapper = new EventMapper();
+	private EventMapper eventMapper;
 	private ArrayBlockingQueue<Message> actions = new ArrayBlockingQueue<Message>( 10 );
 	Dispatcher dispatcher = null;
 
 	ClientSideView( int portNum, String host )
 	{
-		eventMapper.setAction( "NP", new NewPortAction() );
-		eventMapper.setAction( "ECHO", new EchoAction());
+		eventMapper = new EventMapper( new ClientActionConfigurator().getConfigurator());
 		text = new JLabel( "Text to send over socket:" );
 		textField = new JTextField( 20 );
 		button = new JButton( "Click Me" );

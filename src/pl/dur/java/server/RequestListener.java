@@ -13,6 +13,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import pl.dur.java.components.register.ServerComponentsRegister;
+import pl.dur.java.dispatchers.Dispatcher;
 import pl.dur.java.messages.Message;
 
 /**

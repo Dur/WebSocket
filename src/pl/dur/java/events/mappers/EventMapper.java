@@ -20,6 +20,7 @@ public class EventMapper
 
 	public EventMapper( HashMap<String, Action> actions )
 	{
+		actionMapper = new HashMap<String, Action>();
 		if( actions != null )
 		{
 			this.actionMapper.putAll( actions );

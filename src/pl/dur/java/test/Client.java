@@ -13,6 +13,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.*;
 
 /**
@@ -75,8 +77,7 @@ class Client extends JFrame
 		{
 			socket = new Socket( "localhost", 80 );
 			out = new PrintWriter( socket.getOutputStream(), true );
-			in = new BufferedReader( new InputStreamReader( socket.
-					getInputStream() ) );
+			in = new BufferedReader( new InputStreamReader( socket.getInputStream() ) );
 			String line = in.readLine();
 			System.out.println( "Text received :" + line );
 			if( line.contains( "NP" ) )
@@ -86,8 +87,7 @@ class Client extends JFrame
 				socket = new Socket( "localhost", port.intValue() );
 			}
 			out = new PrintWriter( socket.getOutputStream(), true );
-			in = new BufferedReader( new InputStreamReader( socket.
-					getInputStream() ) );
+			in = new BufferedReader( new InputStreamReader( socket.getInputStream() ) );
 		}
 		catch( UnknownHostException e )
 		{
@@ -118,4 +118,5 @@ class Client extends JFrame
 		frame.setVisible( true );
 		frame.listenSocket();
 	}
+	
 }

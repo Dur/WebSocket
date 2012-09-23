@@ -18,6 +18,7 @@ public class ServerActionConfigurator
 	
 	public ServerActionConfigurator()
 	{
+		configurator = new HashMap<String, Action>();
 		configurator.put("KILL", new KillAction());
 	}
 

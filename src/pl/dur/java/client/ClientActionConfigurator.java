@@ -16,7 +16,7 @@ import pl.dur.java.actions.SendBackAction;
  */
 public final class ClientActionConfigurator
 {
-	private HashMap<String, Action> configurator;
+	private HashMap<String, Action> configurator = new HashMap<String, Action>();
 	
 	public ClientActionConfigurator()
 	{
